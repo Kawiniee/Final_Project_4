@@ -45,6 +45,10 @@ def sup_prep(data):
        'โปรดพิมพ์จังหวัดที่อยู่อาศัยของคุณ เช่น กทม , ขอนแก่น, ชลบุรี',   
        'คุณดื่มกาแฟประเภทใดบ่อยที่สุด',
        'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)']].copy()
+    
+    period_cols = period_cols.rename(columns={
+    'โปรดพิมพ์จังหวัดที่อยู่อาศัยของคุณ เช่น กทม , ขอนแก่น, ชลบุรี': 'province'
+    })
 
     mapping = {
         'กทม': 'กรุงเทพมหานคร',
@@ -57,16 +61,16 @@ def sup_prep(data):
         'แอลเอ': 'ร้อยเอ็ด',
         'bonn': 'อุบลราชธานี'
     }
-    for col in period_cols.columns:
-        period_cols[col] = period_cols[col].str.strip().str.lower()
-        period_cols[col] = period_cols[col].replace(mapping)
-        period_cols[col] = period_cols[col].str.split(r'[,\s]+')
-        
 
-    print(period_cols['โปรดพิมพ์จังหวัดที่อยู่อาศัยของคุณ เช่น กทม , ขอนแก่น, ชลบุรี'].value_counts(dropna=False))
-    # print(period_cols['คุณดื่มกาแฟประเภทใดบ่อยที่สุด'].value_counts(dropna=False))
+    # keep first elemnt drop the rest
+    period_cols['province'] = period_cols['province'].str.split(',').str[0].str.strip().str.lower()
+    
+    # Mapping
+    period_cols['province'] = period_cols['province'].map(mapping).fillna(period_cols['province'])
+    period_cols['คุณดื่มกาแฟประเภทใดบ่อยที่สุด'] = period_cols['คุณดื่มกาแฟประเภทใดบ่อยที่สุด'].fillna('ไม่ดื่มกาแฟประเภทใดเลย')
 
-    return period_cols
+    return media_cols, period_cols
 
-period_cols = sup_prep(data)
-# period_cols.to_excel("Text.xlsx", index=False)
+media_cols ,period_cols = sup_prep(data)
+# media_cols.to_excel("Media.xlsx", index=False)
+# period_cols.to_excel("Period.xlsx", index=False)
