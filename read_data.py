@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import LabelEncoder
 
 data = pd.read_csv('RTD_Brew.csv')
@@ -14,6 +15,11 @@ def unsup_prep(data):
 
     #prepare for training
     X = data[target_cols].copy()
+    X = X.fillna(0)
+    select_col1 = 'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)'
+    select_col2 = 'คุณดื่มชาพร้อมดื่ม ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)'
+    X[select_col1]= X[select_col1].replace(0, "ไม่ดื่มกาแฟในโอกาศใดเลย")
+    X[select_col2]= X[select_col2].replace(0, "ไม่ดื่มชาในโอกาศใดเลย")
 
     #Data Cleaning
     skip = [col for col in X.columns if '(เลือกได้หลายคำตอบ)' in col]
@@ -26,9 +32,14 @@ def unsup_prep(data):
         cleaned = X[col].astype(str).str.replace(r'\D', '', regex=True)
         X[col] = pd.to_numeric(cleaned, errors='coerce')
 
+    #Scaling
+    scaler = StandardScaler()
+    cols_to_scale = list(X.columns[1:13]) + list(X.columns[14:24])
+    X[cols_to_scale] = scaler.fit_transform(X[cols_to_scale])
     return X   
+
 X = unsup_prep(data)
-# X.to_excel("Clustering.xlsx")
+X.to_csv("Clustering.csv", index=False)
 
 def sup_prep(data):
     media_cols = data[['อายุ', 'อาชีพ',
