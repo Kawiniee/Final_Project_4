@@ -1,6 +1,5 @@
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
 
 data = pd.read_csv('RTD_Brew.csv')
 
@@ -39,23 +38,29 @@ def unsup_prep(data):
     return X   
 
 X = unsup_prep(data)
-X.to_csv("Clustering.csv", index=False)
+X.to_csv("Unsupervised.csv", index=False)
 
 def sup_prep(data):
-    media_cols = data[['อายุ', 'อาชีพ',
+    from Unsupervised import Cluster_ID
+
+    media_cols = data[['อายุ', 'อาชีพ', 'เพศ',
        'ความถี่ในการเปิดรับสื่อในแต่ละช่องทางต่อสัปดาห์ [ออนไลน์]',       
        'ระยะเวลาในการเสพสื่อต่อวัน ในแต่ละช่องทาง [ออนไลน์]',
        'ในวันหยุดยาวหรือเทศกาล คุณใช้โซเชียลมีเดีย อย่างไร']].copy()
+    
+    media_cols['Cluster_ID'] = Cluster_ID
 
-    #Encode
-    for col in media_cols.columns:
-        le = LabelEncoder()
-        media_cols[col] = le.fit_transform(media_cols[col].astype(str))
+    #OneHot Encode
+    ohe = OneHotEncoder(sparse_output=False)
+    media_cols_encoded = ohe.fit_transform(media_cols.astype(str))
+    media_cols = pd.DataFrame(media_cols_encoded, columns=ohe.get_feature_names_out(media_cols.columns))
 
-    period_cols = data[['อายุ', 'คุณใช้โซเชียลมีเดียใดบ่อยที่สุด',
+    period_cols = data[['อายุ', 'อาชีพ', 'เพศ', 'คุณใช้โซเชียลมีเดียใดบ่อยที่สุด',
        'โปรดพิมพ์จังหวัดที่อยู่อาศัยของคุณ เช่น กทม , ขอนแก่น, ชลบุรี',   
        'คุณดื่มกาแฟประเภทใดบ่อยที่สุด',
        'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)']].copy()
+    
+    period_cols['Cluster_ID'] = Cluster_ID
     
     period_cols = period_cols.rename(columns={
     'โปรดพิมพ์จังหวัดที่อยู่อาศัยของคุณ เช่น กทม , ขอนแก่น, ชลบุรี': 'province'
@@ -73,7 +78,7 @@ def sup_prep(data):
         'bonn': 'อุบลราชธานี'
     }
 
-    # keep first elemnt drop the rest
+    # keep first element drop the rest
     period_cols['province'] = period_cols['province'].str.split(',').str[0].str.strip().str.lower()
 
     # Mapping
@@ -81,9 +86,9 @@ def sup_prep(data):
     period_cols['คุณดื่มกาแฟประเภทใดบ่อยที่สุด'] = period_cols['คุณดื่มกาแฟประเภทใดบ่อยที่สุด'].fillna('ไม่ดื่มกาแฟประเภทใดเลย')
 
     #Encode
-    for col in period_cols.columns:
-        le = LabelEncoder()
-        period_cols[col] = le.fit_transform(period_cols[col].astype(str))
+    ohe_period = OneHotEncoder(sparse_output=False)
+    period_cols_encoded = ohe_period.fit_transform(period_cols.astype(str))
+    period_cols = pd.DataFrame(period_cols_encoded, columns=ohe_period.get_feature_names_out(period_cols.columns))
     
     return media_cols, period_cols
 
