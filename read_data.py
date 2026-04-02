@@ -41,14 +41,14 @@ X = unsup_prep(data)
 X.to_csv("Unsupervised.csv", index=False)
 
 def sup_prep(data):
-    from Unsupervised import Cluster_ID
+    # from Unsupervised import Cluster_ID
 
     media_cols = data[['อายุ', 'อาชีพ', 'เพศ',
        'ความถี่ในการเปิดรับสื่อในแต่ละช่องทางต่อสัปดาห์ [ออนไลน์]',       
        'ระยะเวลาในการเสพสื่อต่อวัน ในแต่ละช่องทาง [ออนไลน์]',
        'ในวันหยุดยาวหรือเทศกาล คุณใช้โซเชียลมีเดีย อย่างไร']].copy()
     
-    media_cols['Cluster_ID'] = Cluster_ID
+    # media_cols['Cluster_ID'] = Cluster_ID
 
     #OneHot Encode
     ohe = OneHotEncoder(sparse_output=False)
@@ -60,7 +60,7 @@ def sup_prep(data):
        'คุณดื่มกาแฟประเภทใดบ่อยที่สุด',
        'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)']].copy()
     
-    period_cols['Cluster_ID'] = Cluster_ID
+    # period_cols['Cluster_ID'] = Cluster_ID
     
     period_cols = period_cols.rename(columns={
     'โปรดพิมพ์จังหวัดที่อยู่อาศัยของคุณ เช่น กทม , ขอนแก่น, ชลบุรี': 'province'
