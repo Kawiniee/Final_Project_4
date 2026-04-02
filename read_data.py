@@ -64,11 +64,16 @@ def sup_prep(data):
 
     # keep first elemnt drop the rest
     period_cols['province'] = period_cols['province'].str.split(',').str[0].str.strip().str.lower()
-    
+
     # Mapping
     period_cols['province'] = period_cols['province'].map(mapping).fillna(period_cols['province'])
     period_cols['คุณดื่มกาแฟประเภทใดบ่อยที่สุด'] = period_cols['คุณดื่มกาแฟประเภทใดบ่อยที่สุด'].fillna('ไม่ดื่มกาแฟประเภทใดเลย')
 
+    #Encode
+    for col in period_cols.columns:
+        le = LabelEncoder()
+        period_cols[col] = le.fit_transform(period_cols[col].astype(str))
+    
     return media_cols, period_cols
 
 media_cols ,period_cols = sup_prep(data)
