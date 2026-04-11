@@ -7,12 +7,12 @@ def unsup_prep(data):
     mask = (data['คุณดื่มกาแฟหรือไม่'] == 'ไม่ดื่ม') & (data['คุณดื่มชาหรือไม่'] == 'ไม่ดื่ม')
     data = data.drop(data[mask].index).reset_index() #drop where it's not ours customer
 
-    #select necessary features
+    #Select necessary features
     coffee_cols = data.columns[54:67]
     tea_cols = data.columns[86:97]
     target_cols = list(coffee_cols) + list(tea_cols)
 
-    #prepare for training
+    #Prepare for training
     X = data[target_cols].copy()
     X = X.fillna(0)
     select_col1 = 'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)'
@@ -68,31 +68,32 @@ def unsup_prep(data):
     return X   
 
 X = unsup_prep(data)
-X.to_csv("Unsupervised.csv", index=False)
+# X.to_csv("Unsupervised.csv", index=False)
 
-def sup_prep(data):
-    mask = (data['คุณดื่มกาแฟหรือไม่'] == 'ไม่ดื่ม') & (data['คุณดื่มชาหรือไม่'] == 'ไม่ดื่ม')
-    data = data.drop(data[mask].index).reset_index() #drop where it's not ours customer
-    # from Unsupervised import Cluster_ID
 
-    media_cols = data[['อายุ', 'อาชีพ', 'เพศ',
+data2 = pd.read_csv('unsupervised_results.csv')
+df = pd.merge(X, data2, left_index=True, right_index=True)
+
+def sup_prep(df, data2):
+    mask = (df['คุณดื่มกาแฟหรือไม่'] == 'ไม่ดื่ม') & (df['คุณดื่มชาหรือไม่'] == 'ไม่ดื่ม')
+    df = df.drop(df[mask].index).reset_index() #drop where it's not ours customer
+
+    df['Cluster_ID'] = data2['Cluster_ID']
+
+    media_cols = df[['อายุ', 'อาชีพ', 'เพศ',
        'ความถี่ในการเปิดรับสื่อในแต่ละช่องทางต่อสัปดาห์ [ออนไลน์]',       
        'ระยะเวลาในการเสพสื่อต่อวัน ในแต่ละช่องทาง [ออนไลน์]',
-       'ในวันหยุดยาวหรือเทศกาล คุณใช้โซเชียลมีเดีย อย่างไร']].copy()
-    
-    # media_cols['Cluster_ID'] = Cluster_ID
+       'ในวันหยุดยาวหรือเทศกาล คุณใช้โซเชียลมีเดีย อย่างไร', 'Cluster_ID']].copy()
 
     #OneHot Encode
     ohe = OneHotEncoder(sparse_output=False)
     media_cols_encoded = ohe.fit_transform(media_cols.astype(str))
     media_cols = pd.DataFrame(media_cols_encoded, columns=ohe.get_feature_names_out(media_cols.columns))
 
-    period_cols = data[['อายุ', 'อาชีพ', 'เพศ', 'คุณใช้โซเชียลมีเดียใดบ่อยที่สุด',
+    period_cols = df[['อายุ', 'อาชีพ', 'เพศ', 'คุณใช้โซเชียลมีเดียใดบ่อยที่สุด',
        'โปรดพิมพ์จังหวัดที่อยู่อาศัยของคุณ เช่น กทม , ขอนแก่น, ชลบุรี',   
        'คุณดื่มกาแฟประเภทใดบ่อยที่สุด',
-       'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)']].copy()
-    
-    # period_cols['Cluster_ID'] = Cluster_ID
+       'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)', 'Cluster_ID']].copy()
     
     period_cols = period_cols.rename(columns={
     'โปรดพิมพ์จังหวัดที่อยู่อาศัยของคุณ เช่น กทม , ขอนแก่น, ชลบุรี': 'province'
@@ -110,12 +111,15 @@ def sup_prep(data):
         'bonn': 'อุบลราชธานี'
     }
 
-    # keep first element drop the rest
+    #Keep first element drop the rest
     period_cols['province'] = period_cols['province'].str.split(',').str[0].str.strip().str.lower()
 
-    # Mapping
+    #Mapping
     period_cols['province'] = period_cols['province'].map(mapping).fillna(period_cols['province'])
     period_cols['คุณดื่มกาแฟประเภทใดบ่อยที่สุด'] = period_cols['คุณดื่มกาแฟประเภทใดบ่อยที่สุด'].fillna('ไม่ดื่มกาแฟประเภทใดเลย')
+
+    #Check
+    print(period_cols.info())
 
     #Encode
     ohe_period = OneHotEncoder(sparse_output=False)
@@ -124,6 +128,6 @@ def sup_prep(data):
     
     return media_cols, period_cols
 
-media_cols ,period_cols = sup_prep(data)
-# media_cols.to_excel("Media.xlsx", index=False)
-# period_cols.to_excel("Period.xlsx", index=False)
+media_cols, period_cols = sup_prep(data, data2)
+media_cols.to_csv("Media.csv", index=False)
+period_cols.to_csv("Period.csv", index=False)
