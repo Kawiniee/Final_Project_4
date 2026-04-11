@@ -7,6 +7,9 @@ def unsup_prep(data):
     mask = (data['คุณดื่มกาแฟหรือไม่'] == 'ไม่ดื่ม') & (data['คุณดื่มชาหรือไม่'] == 'ไม่ดื่ม')
     data = data.drop(data[mask].index).reset_index() #drop where it's not ours customer
 
+    #drop duplicate
+    data = data.drop_duplicates()
+
     #Select necessary features
     coffee_cols = data.columns[54:67]
     tea_cols = data.columns[86:97]
@@ -68,7 +71,7 @@ def unsup_prep(data):
     return X   
 
 X = unsup_prep(data)
-# X.to_csv("Unsupervised.csv", index=False)
+X.to_csv("Unsupervised.csv", index=False)
 
 
 data2 = pd.read_csv('unsupervised_results.csv')
@@ -79,6 +82,9 @@ def sup_prep(df, data2):
     df = df.drop(df[mask].index).reset_index() #drop where it's not ours customer
 
     df['Cluster_ID'] = data2['Cluster_ID']
+
+    #drop duplicate
+    df = df.drop_duplicates()
 
     media_cols = df[['อายุ', 'อาชีพ', 'เพศ',
        'ความถี่ในการเปิดรับสื่อในแต่ละช่องทางต่อสัปดาห์ [ออนไลน์]',       
