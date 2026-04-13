@@ -71,7 +71,7 @@ def unsup_prep(data):
     return X   
 
 X = unsup_prep(data)
-X.to_csv("Unsupervised.csv", index=False)
+# X.to_csv("Unsupervised.csv", index=False)
 
 
 data2 = pd.read_csv('unsupervised_results.csv')
@@ -91,13 +91,26 @@ def sup_prep(df, data2):
        'ระยะเวลาในการเสพสื่อต่อวัน ในแต่ละช่องทาง [ออนไลน์]',
        'ในวันหยุดยาวหรือเทศกาล คุณใช้โซเชียลมีเดีย อย่างไร', 'Cluster_ID']].copy()
 
-    #OneHot Encode
+    # Separating columns for Different Encodings
+    binary_cols = ['อาชีพ', 'เพศ', 'ในวันหยุดยาวหรือเทศกาล คุณใช้โซเชียลมีเดีย อย่างไร', 'Cluster_ID']
+    label_cols = ['อายุ' ,'ความถี่ในการเปิดรับสื่อในแต่ละช่องทางต่อสัปดาห์ [ออนไลน์]', 'ระยะเวลาในการเสพสื่อต่อวัน ในแต่ละช่องทาง [ออนไลน์]']
+
+    # OneHot (Binary) Encode
     ohe = OneHotEncoder(sparse_output=False)
-    media_cols_encoded = ohe.fit_transform(media_cols.astype(str))
-    media_cols = pd.DataFrame(media_cols_encoded, columns=ohe.get_feature_names_out(media_cols.columns))
+    media_cols_binary = ohe.fit_transform(media_cols[binary_cols].astype(str))
+    media_cols_binary_df = pd.DataFrame(media_cols_binary, columns=ohe.get_feature_names_out(binary_cols))
+
+    # Label Encode
+    le = LabelEncoder()
+    media_cols_label_df = media_cols[label_cols].copy().reset_index(drop=True)
+    for col in label_cols:
+        media_cols_label_df[col] = le.fit_transform(media_cols_label_df[col].astype(str))
+    
+    # Combine back into media_cols
+    media_cols = pd.concat([media_cols_binary_df, media_cols_label_df], axis=1)
 
     period_cols = df[['อายุ', 'อาชีพ', 'เพศ', 'คุณใช้โซเชียลมีเดียใดบ่อยที่สุด',
-       'โปรดพิมพ์จังหวัดที่อยู่อาศัยของคุณ เช่น กทม , ขอนแก่น, ชลบุรี',   
+       'โปรดพิมพ์จังหวัดที่อยู่อาศัยของคุณ เช่น กทม , ขอนแก่น, ชลบุรี',
        'คุณดื่มกาแฟประเภทใดบ่อยที่สุด',
        'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)', 'Cluster_ID']].copy()
     
@@ -125,12 +138,25 @@ def sup_prep(df, data2):
     period_cols['คุณดื่มกาแฟประเภทใดบ่อยที่สุด'] = period_cols['คุณดื่มกาแฟประเภทใดบ่อยที่สุด'].fillna('ไม่ดื่มกาแฟประเภทใดเลย')
 
     #Check
-    print(period_cols.info())
+    # print(period_cols.info())
 
-    #Encode
-    ohe_period = OneHotEncoder(sparse_output=False)
-    period_cols_encoded = ohe_period.fit_transform(period_cols.astype(str))
-    period_cols = pd.DataFrame(period_cols_encoded, columns=ohe_period.get_feature_names_out(period_cols.columns))
+    # Separating columns for Different Encodings
+    binary_cols = ['อาชีพ', 'เพศ', 'province', 'คุณดื่มกาแฟประเภทใดบ่อยที่สุด', 'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)', 'Cluster_ID']
+    label_cols = ['อายุ']
+
+    # OneHot (Binary) Encode
+    ohe = OneHotEncoder(sparse_output=False)
+    period_cols_binary = ohe.fit_transform(period_cols[binary_cols].astype(str))
+    period_cols_binary_df = pd.DataFrame(period_cols_binary, columns=ohe.get_feature_names_out(binary_cols))
+
+    # Label Encode
+    le = LabelEncoder()
+    period_cols_label_df = period_cols[label_cols].copy().reset_index(drop=True)
+    for col in label_cols:
+        period_cols_label_df[col] = le.fit_transform(period_cols_label_df[col].astype(str))
+    
+    # Combine back into period_cols
+    period_cols = pd.concat([period_cols_binary_df, period_cols_label_df], axis=1)
     
     return media_cols, period_cols
 
