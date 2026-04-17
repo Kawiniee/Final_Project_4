@@ -89,21 +89,23 @@ def sup_prep(df, data2):
     media_cols = df[['อายุ', 'อาชีพ', 'เพศ',
        'ความถี่ในการเปิดรับสื่อในแต่ละช่องทางต่อสัปดาห์ [ออนไลน์]',       
        'ระยะเวลาในการเสพสื่อต่อวัน ในแต่ละช่องทาง [ออนไลน์]',
+       'ในวันจันทร์-ศุกร์ (Weekday) ช่วงเวลาใดที่คุณเปิดรับสื่อแต่ละช่องทาง [ออนไลน์]',
+       'ในวันหยุดเสาร์-อาทิตย์ (Weekend) ช่วงเวลาใดที่คุณเปิดรับสื่อแต่ละช่องทาง [ออนไลน์]',
        'ในวันหยุดยาวหรือเทศกาล คุณใช้โซเชียลมีเดีย อย่างไร', 'Cluster_ID']].copy()
 
     # Separating columns for Different Encodings
-    binary_cols = ['อาชีพ', 'เพศ', 'ในวันหยุดยาวหรือเทศกาล คุณใช้โซเชียลมีเดีย อย่างไร', 'Cluster_ID']
-    label_cols = ['อายุ' ,'ความถี่ในการเปิดรับสื่อในแต่ละช่องทางต่อสัปดาห์ [ออนไลน์]', 'ระยะเวลาในการเสพสื่อต่อวัน ในแต่ละช่องทาง [ออนไลน์]']
+    media_binary = ['อาชีพ', 'เพศ', 'ในวันหยุดยาวหรือเทศกาล คุณใช้โซเชียลมีเดีย อย่างไร', 'Cluster_ID']
+    media_label = ['อายุ' ,'ความถี่ในการเปิดรับสื่อในแต่ละช่องทางต่อสัปดาห์ [ออนไลน์]', 'ในวันจันทร์-ศุกร์ (Weekday) ช่วงเวลาใดที่คุณเปิดรับสื่อแต่ละช่องทาง [ออนไลน์]', 'ในวันหยุดเสาร์-อาทิตย์ (Weekend) ช่วงเวลาใดที่คุณเปิดรับสื่อแต่ละช่องทาง [ออนไลน์]', 'ระยะเวลาในการเสพสื่อต่อวัน ในแต่ละช่องทาง [ออนไลน์]']
 
     # OneHot (Binary) Encode
     ohe = OneHotEncoder(sparse_output=False)
-    media_cols_binary = ohe.fit_transform(media_cols[binary_cols].astype(str))
-    media_cols_binary_df = pd.DataFrame(media_cols_binary, columns=ohe.get_feature_names_out(binary_cols))
+    media_cols_binary = ohe.fit_transform(media_cols[media_binary].astype(str))
+    media_cols_binary_df = pd.DataFrame(media_cols_binary, columns=ohe.get_feature_names_out(media_binary))
 
     # Label Encode
     le = LabelEncoder()
-    media_cols_label_df = media_cols[label_cols].copy().reset_index(drop=True)
-    for col in label_cols:
+    media_cols_label_df = media_cols[media_label].copy().reset_index(drop=True)
+    for col in media_label:
         media_cols_label_df[col] = le.fit_transform(media_cols_label_df[col].astype(str))
     
     # Combine back into media_cols
@@ -112,6 +114,8 @@ def sup_prep(df, data2):
     period_cols = df[['อายุ', 'อาชีพ', 'เพศ', 'คุณใช้โซเชียลมีเดียใดบ่อยที่สุด',
        'โปรดพิมพ์จังหวัดที่อยู่อาศัยของคุณ เช่น กทม , ขอนแก่น, ชลบุรี',
        'คุณดื่มกาแฟประเภทใดบ่อยที่สุด',
+       'ในวันจันทร์-ศุกร์ (Weekday) ช่วงเวลาใดที่คุณเปิดรับสื่อแต่ละช่องทาง [ออนไลน์]',
+       'ในวันหยุดเสาร์-อาทิตย์ (Weekend) ช่วงเวลาใดที่คุณเปิดรับสื่อแต่ละช่องทาง [ออนไลน์]',
        'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)', 'Cluster_ID']].copy()
     
     period_cols = period_cols.rename(columns={
@@ -141,18 +145,18 @@ def sup_prep(df, data2):
     # print(period_cols.info())
 
     # Separating columns for Different Encodings
-    binary_cols = ['อาชีพ', 'เพศ', 'province', 'คุณดื่มกาแฟประเภทใดบ่อยที่สุด', 'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)', 'Cluster_ID']
-    label_cols = ['อายุ']
+    period_binary = ['อาชีพ', 'เพศ', 'province', 'คุณดื่มกาแฟประเภทใดบ่อยที่สุด', 'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)', 'Cluster_ID']
+    period_label = ['อายุ', 'ในวันจันทร์-ศุกร์ (Weekday) ช่วงเวลาใดที่คุณเปิดรับสื่อแต่ละช่องทาง [ออนไลน์]', 'ในวันหยุดเสาร์-อาทิตย์ (Weekend) ช่วงเวลาใดที่คุณเปิดรับสื่อแต่ละช่องทาง [ออนไลน์]']
 
     # OneHot (Binary) Encode
     ohe = OneHotEncoder(sparse_output=False)
-    period_cols_binary = ohe.fit_transform(period_cols[binary_cols].astype(str))
-    period_cols_binary_df = pd.DataFrame(period_cols_binary, columns=ohe.get_feature_names_out(binary_cols))
+    period_cols_binary = ohe.fit_transform(period_cols[period_binary].astype(str))
+    period_cols_binary_df = pd.DataFrame(period_cols_binary, columns=ohe.get_feature_names_out(period_binary))
 
     # Label Encode
     le = LabelEncoder()
-    period_cols_label_df = period_cols[label_cols].copy().reset_index(drop=True)
-    for col in label_cols:
+    period_cols_label_df = period_cols[period_label].copy().reset_index(drop=True)
+    for col in period_label:
         period_cols_label_df[col] = le.fit_transform(period_cols_label_df[col].astype(str))
     
     # Combine back into period_cols
