@@ -165,5 +165,7 @@ def sup_prep(df, data2):
     return media_cols, period_cols
 
 media_cols, period_cols = sup_prep(data, data2)
-media_cols.to_csv("Media.csv", index=False)
-period_cols.to_csv("Period.csv", index=False)
+merge = pd.merge(media_cols, period_cols)
+merge.to_csv("Supervised.csv", index=False)
+# media_cols.to_csv("Media.csv", index=False)
+# period_cols.to_csv("Period.csv", index=False)
