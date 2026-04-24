@@ -2,14 +2,14 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
 
 data = pd.read_csv('RTD_Brew.csv')
-# segmented = pd.read_csv('unsupervised_results.csv')
+segmented = pd.read_csv('unsupervised_results.csv')
 
 print("----- Check Raw Data -----")
 print(data.info())
 print("----- Check Unsupervised -----")
-# print(segmented.info())
+print(segmented.info())
 
-def data_prep(data):
+def data_prep(data, segmented):
 # for unsupervised
     mask = (data['คุณดื่มกาแฟหรือไม่'] == 'ไม่ดื่ม') & (data['คุณดื่มชาหรือไม่'] == 'ไม่ดื่ม')
     data = data.drop(data[mask].index).reset_index() #drop where it's not ours customer
@@ -63,7 +63,7 @@ def data_prep(data):
     }
 
     data = data.rename(columns=rename_mapping)
-    data = data[list(rename_mapping.values())].copy()
+    # data = data[list(rename_mapping.values())].copy()
 
     data['C_Occasion'] = data['C_Occasion'].fillna('ไม่ดื่มกาแฟ')
     data['T_Occasion'] = data['T_Occasion'].fillna('ไม่ดื่มชา')
@@ -135,8 +135,8 @@ def data_prep(data):
     print("----- Check Encoded features -----")
     print(features)
 
-    return data
+    return data, features
 
-data = data_prep(data)
-# features.to_csv('for_supervised.csv', index=False)
+data, features = data_prep(data, segmented)
+features.to_csv('for_supervised.csv', index=False)
 data.to_csv('for_unsupervised.csv', index=False)
