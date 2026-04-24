@@ -131,5 +131,5 @@ def data_prep(data, segmented):
     return features, cleaned_data
 
 features, cleaned_data = data_prep(data, segmented)
-features.to_csv('features.csv', index=False)
-cleaned_data.to_csv('renamed_data.csv', index=False)
+features.to_csv('for_supervised.csv', index=False)
+cleaned_data.to_csv('for_unsupervised.csv', index=False)
