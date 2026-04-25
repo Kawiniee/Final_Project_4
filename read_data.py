@@ -63,7 +63,6 @@ def data_prep(data, segmented):
     }
 
     data = data.rename(columns=rename_mapping)
-    # data = data[list(rename_mapping.values())].copy()
 
     data['C_Occasion'] = data['C_Occasion'].fillna('ไม่ดื่มกาแฟ')
     data['T_Occasion'] = data['T_Occasion'].fillna('ไม่ดื่มชา')
