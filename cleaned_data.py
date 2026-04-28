@@ -4,36 +4,45 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
 data = pd.read_csv('RTD_Brew.csv')
 segmented = pd.read_csv('unsupervised_results.csv')
 
-print("----- Check Raw Data -----")
+cluster_map = {0: 'ชอบกาแฟ', 2: 'ชอบชา', 1: 'ชอบทั้งกาแฟและชา'}
+segmented['Cluster'] = segmented['Cluster_ID'].map(cluster_map)
+
+print("========== Check Raw Data ==========")
 print(data.info())
-print("----- Check Unsupervised -----")
+
+print("========== Check Unsupervised ==========")
 print(segmented.info())
 
 def data_prep(data, segmented):
 # for unsupervised
+
+    # Filter
     mask = (data['คุณดื่มกาแฟหรือไม่'] == 'ไม่ดื่ม') & (data['คุณดื่มชาหรือไม่'] == 'ไม่ดื่ม')
     data = data.drop(data[mask].index).reset_index() #drop where it's not ours customer
 
-    #drop duplicate
+    # Drop duplicate
     data = data.drop_duplicates()
-
-    #Select necessary features
-    coffee_cols = data.columns[54:67]
-    tea_cols = data.columns[86:97]
-    target_cols = coffee_cols.append(tea_cols)
-
-    for col in target_cols:
+    for col in data:
         if "(5 = สำคัญมากที่สุด)" in col:
         # \D removes all non-digits
             data[col] = pd.to_numeric(
                 data[col].astype(str).str.replace(r'\D', '', regex=True), 
                 errors='coerce'
         )
-    
-    # Rename columns before returning
-    # Uncomment and add column names here to rename them
+            
     rename_mapping = {
         # --- กลุ่มกาแฟ (Coffee) ---
+        'อายุ': 'Age', 'อาชีพ': 'Profession', 'เพศ': 'Sex',
+        'โปรดพิมพ์จังหวัดที่อยู่อาศัยของคุณ เช่น กทม , ขอนแก่น, ชลบุรี': 'Province',
+        'คุณใช้โซเชียลมีเดียใดบ่อยที่สุด': 'S_Occasion',
+        'ความถี่ในการเปิดรับสื่อในแต่ละช่องทางต่อสัปดาห์ [ออนไลน์]': 'S_Frequency',
+        'ระยะเวลาในการเสพสื่อต่อวัน ในแต่ละช่องทาง [ออนไลน์]': 'S_Screentime',
+        'ในวันจันทร์-ศุกร์ (Weekday) ช่วงเวลาใดที่คุณเปิดรับสื่อแต่ละช่องทาง [ออนไลน์]': 'S_Time(weekday)',
+        'ในวันหยุดเสาร์-อาทิตย์ (Weekend) ช่วงเวลาใดที่คุณเปิดรับสื่อแต่ละช่องทาง [ออนไลน์]': 'S_Time(weekend)',
+        'ในวันหยุดยาวหรือเทศกาล คุณใช้โซเชียลมีเดีย อย่างไร': 'S_Usage(festival)',
+        'คุณดื่มกาแฟประเภทใดบ่อยที่สุด': 'C_Frequency',
+        'คุณชอบกาแฟประเภทใดมากที่สุด': 'C_Favorite',  
+        'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) แบรนด์ใดบ่อยที่สุด': 'C_BestBrand',
         'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)': 'C_Occasion',
         'ในการดื่มกาแฟพร้อมดื่ม (Ready to drink) คุณให้ความสำคัญกับคุณสมบัติด้านล่างนี้มากน้อยเพียงใด (5 = สำคัญมากที่สุด) [รสชาติดีเหมือนกาแฟสด]': 'C_Fresh_Taste',
         'ในการดื่มกาแฟพร้อมดื่ม (Ready to drink) คุณให้ความสำคัญกับคุณสมบัติด้านล่างนี้มากน้อยเพียงใด (5 = สำคัญมากที่สุด) [รสชาติเข้มข้น]': 'C_Intense',
@@ -50,6 +59,11 @@ def data_prep(data, segmented):
 
         # --- กลุ่มชา (Tea) ---
         'คุณดื่มชาพร้อมดื่ม ในโอกาส/โมเมนต์ใดบ้าง (เลือกได้หลายคำตอบ)': 'T_Occasion',
+        'คุณดื่มชาประเภทใดบ่อยที่สุด': 'T_Frequency', 
+        'คุณชอบดื่มชาประเภทใดมากที่สุด': 'T_Favorite',    
+        'จากตัวเลือกด้านบน รบกวนบอกเหตุผลสั้นๆ ทำไมคุณถึงชอบดื่มชาประเภทนั้นๆ (ชาแก้ว/ชาพร้อมดื่ม/ชงเอง)': 'T_Reason',
+        'ถ้ามีแบรนด์ชาพร้อมดื่ม (Ready to drink) ออกใหม่ คุณจะลองหรือไม่': 'T_Trial',
+        'คุณซื้อชาพร้อมดื่ม (Ready to drink) จากช่องทางใดบ้าง': 'T_Channel',
         'ในการดื่มชาพร้อมดื่ม (Ready to drink) คุณให้ความสำคัญกับคุณสมบัติด้านล่างนี้มากน้อยเพียงใด (5 = สำคัญมากที่สุด) [กลิ่นหอมใบชาเขียว]': 'T_Aroma',
         'ในการดื่มชาพร้อมดื่ม (Ready to drink) คุณให้ความสำคัญกับคุณสมบัติด้านล่างนี้มากน้อยเพียงใด (5 = สำคัญมากที่สุด) [รสชาติชาเขียวเข้มข้น]': 'T_Intense',
         'ในการดื่มชาพร้อมดื่ม (Ready to drink) คุณให้ความสำคัญกับคุณสมบัติด้านล่างนี้มากน้อยเพียงใด (5 = สำคัญมากที่สุด) [ไม่เติมน้ำตาล/ไม่มีน้ำตาล]': 'T_No_Sugar',
@@ -64,25 +78,24 @@ def data_prep(data, segmented):
 
     data = data.rename(columns=rename_mapping)
 
-    data['C_Occasion'] = data['C_Occasion'].fillna('ไม่ดื่มกาแฟ')
-    data['T_Occasion'] = data['T_Occasion'].fillna('ไม่ดื่มชา')
-    data = data.fillna(0)
-    print('----- Check missing data -----')
-    print(data.isna().sum())
+    #Select necessary features
+    coffee_cols = data.columns[54:67]
+    tea_cols = data.columns[86:97]
+    target_cols = coffee_cols.append(tea_cols)
+
+    # Filter the dataframe to keep only these columns
+    unsupervised_data = data[target_cols].copy()
+    print("========== Before Handle Missing Value ==========")
+    print(unsupervised_data.isna().sum())
+
+    unsupervised_data['C_Occasion'] = unsupervised_data['C_Occasion'].fillna('ไม่ดื่มกาแฟ')
+    unsupervised_data['T_Occasion'] = unsupervised_data['T_Occasion'].fillna('ไม่ดื่มชา')
+    unsupervised_data = unsupervised_data.fillna(0)
+    print('========== After Handle Missing Value =========')
+    print(unsupervised_data.isna().sum())
 
 #for supervised
     data["Cluster_ID"] = segmented["Cluster_ID"]
-
-    #rename some more columns
-    data = data.rename(columns={'อายุ': 'Age', 'อาชีพ': 'Profession', 'เพศ': 'Sex',
-                                'โปรดพิมพ์จังหวัดที่อยู่อาศัยของคุณ เช่น กทม , ขอนแก่น, ชลบุรี': 'Province',
-                                'คุณดื่มกาแฟประเภทใดบ่อยที่สุด': 'C_Frequency',
-                                'คุณใช้โซเชียลมีเดียใดบ่อยที่สุด': 'S_Occasion',
-                                'ความถี่ในการเปิดรับสื่อในแต่ละช่องทางต่อสัปดาห์ [ออนไลน์]': 'S_Frequency',
-                                'ระยะเวลาในการเสพสื่อต่อวัน ในแต่ละช่องทาง [ออนไลน์]': 'S_Screentime',
-                                'ในวันจันทร์-ศุกร์ (Weekday) ช่วงเวลาใดที่คุณเปิดรับสื่อแต่ละช่องทาง [ออนไลน์]': 'S_Time(weekday)',
-                                'ในวันหยุดเสาร์-อาทิตย์ (Weekend) ช่วงเวลาใดที่คุณเปิดรับสื่อแต่ละช่องทาง [ออนไลน์]': 'S_Time(weekend)',
-                                'ในวันหยุดยาวหรือเทศกาล คุณใช้โซเชียลมีเดีย อย่างไร': 'S_Usage(festival)'})
     
     features = data[['Age', 'Profession', 'Sex',
         'Province',
@@ -94,6 +107,8 @@ def data_prep(data, segmented):
         'S_Time(weekday)',
         'S_Time(weekend)',
         'S_Usage(festival)', 'Cluster_ID']].copy()
+    
+    features['C_Occasion'] = features['C_Occasion'].fillna('ไม่ดื่มกาแฟ')
     
     mapping = {
         'กทม': 'กรุงเทพมหานคร',
@@ -131,10 +146,10 @@ def data_prep(data, segmented):
     
     # Combine back into period_cols
     features = pd.concat([features_cols_binary_df, features_cols_label_df], axis=1)
-    print("----- Check Encoded features -----")
+    print("========== Check Encoded features ==========")
     print(features)
 
-    return data, features
+    return unsupervised_data, features
 
 data, features = data_prep(data, segmented)
 features.to_csv('for_supervised.csv', index=False)
