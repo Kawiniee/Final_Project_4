@@ -1,11 +1,8 @@
 import pandas as pd
-from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
+from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder, MultiLabelBinarizer
 
 data = pd.read_csv('RTD_Brew.csv')
 segmented = pd.read_csv('unsupervised_results.csv')
-
-cluster_map = {0: 'ชอบกาแฟ', 2: 'ชอบชา', 1: 'ชอบทั้งกาแฟและชา'}
-segmented['Cluster'] = segmented['Cluster_ID'].map(cluster_map)
 
 print("========== Check Raw Data ==========")
 print(data.info())
@@ -14,14 +11,13 @@ print("========== Check Unsupervised ==========")
 print(segmented.info())
 
 def data_prep(data, segmented):
-# for unsupervised
-
     # Filter
     mask = (data['คุณดื่มกาแฟหรือไม่'] == 'ไม่ดื่ม') & (data['คุณดื่มชาหรือไม่'] == 'ไม่ดื่ม')
     data = data.drop(data[mask].index).reset_index() #drop where it's not ours customer
 
     # Drop duplicate
     data = data.drop_duplicates()
+
     for col in data:
         if "(5 = สำคัญมากที่สุด)" in col:
         # \D removes all non-digits
@@ -79,36 +75,28 @@ def data_prep(data, segmented):
     data = data.rename(columns=rename_mapping)
 
     #Select necessary features
-    coffee_cols = data.columns[54:67]
-    tea_cols = data.columns[86:97]
-    target_cols = coffee_cols.append(tea_cols)
+    target_cols = list(rename_mapping.values())
 
     # Filter the dataframe to keep only these columns
-    unsupervised_data = data[target_cols].copy()
+    data = data[target_cols].copy()
     print("========== Before Handle Missing Value ==========")
-    print(unsupervised_data.isna().sum())
+    print(data.isna().sum())
 
-    unsupervised_data['C_Occasion'] = unsupervised_data['C_Occasion'].fillna('ไม่ดื่มกาแฟ')
-    unsupervised_data['T_Occasion'] = unsupervised_data['T_Occasion'].fillna('ไม่ดื่มชา')
-    unsupervised_data = unsupervised_data.fillna(0)
+    data[['C_Occasion', 'C_Favorite']] = data[['C_Occasion', 'C_Favorite']].fillna('ไม่ดื่มกาแฟ')
+    data['C_Frequency'] = data['C_Frequency'].fillna('ไม่ดื่มกาแฟประเภทใดเลย')
+    data['C_BestBrand'] = data['C_BestBrand'].fillna('ไม่ดื่มกาแฟ Ready to Drink เลย')
+    data[['T_Occasion', 'T_Favorite', 'T_Frequency', 'T_Reason']] = data[['T_Occasion', 'T_Favorite', 'T_Frequency', 'T_Reason']].fillna('ไม่ดื่มชา')
+    data['T_Trial'] = data['T_Trial'].fillna('ไม่ลอง')
+    data['T_Channel'] = data['T_Channel'].fillna('ไม่ซื้อชา ready to drink')
+    data = data.fillna(0)
     print('========== After Handle Missing Value =========')
-    print(unsupervised_data.isna().sum())
+    print(data.isna().sum())
 
 #for supervised
     data["Cluster_ID"] = segmented["Cluster_ID"]
-    
-    features = data[['Age', 'Profession', 'Sex',
-        'Province',
-        'S_Occasion',
-        'C_Occasion',
-        'C_Frequency',
-        'S_Frequency',       
-        'S_Screentime',
-        'S_Time(weekday)',
-        'S_Time(weekend)',
-        'S_Usage(festival)', 'Cluster_ID']].copy()
-    
-    features['C_Occasion'] = features['C_Occasion'].fillna('ไม่ดื่มกาแฟ')
+
+    cluster_map = {0: 'ชอบกาแฟ', 2: 'ชอบชา', 1: 'ชอบทั้งกาแฟและชา', -1: 'Outlier'}
+    data['Cluster_ID'] = data['Cluster_ID'].map(cluster_map)
     
     mapping = {
         'กทม': 'กรุงเทพมหานคร',
@@ -123,34 +111,51 @@ def data_prep(data, segmented):
     }
 
     #Keep first element drop the rest
-    features['Province'] = features['Province'].str.split(',').str[0].str.strip().str.lower()
-
-    #Mapping
-    features['Province'] = features['Province'].map(mapping).fillna(features['Province'])
-    features['C_Frequency'] = features['C_Frequency'].fillna('ไม่ดื่มกาแฟประเภทใดเลย')
+    data['Province'] = data['Province'].str.split(',').str[0].str.strip().str.lower()
+    data['Province'] = data['Province'].map(mapping).fillna(data['Province'])
 
     # Separating columns for Different Encodings
-    features_binary = ['Profession', 'Sex', 'S_Usage(festival)', 'Province', 'C_Occasion', 'C_Frequency', 'Cluster_ID']
-    features_label = ['Age' ,'S_Frequency', 'S_Time(weekday)', 'S_Time(weekend)', 'S_Screentime']
+    binary = ['Profession', 'Sex', 'Province', 'S_Occasion', 'S_Usage(festival)', 'C_Frequency', 
+              'C_Favorite', 'C_BestBrand', 'T_Frequency', 'T_Favorite', 'Cluster_ID']
+   
+    label = ['Age' ,'S_Frequency', 'S_Screentime']
 
-    # OneHot (Binary) Encode
+    multi_label = ['S_Time(weekday)', 'S_Time(weekend)', 'T_Channel', 'C_Occasion', 'T_Occasion', 'T_Trial']
+
+    # # OneHot (Binary) Encode
     ohe = OneHotEncoder(sparse_output=False)
-    features_cols_binary = ohe.fit_transform(features[features_binary].astype(str))
-    features_cols_binary_df = pd.DataFrame(features_cols_binary, columns=ohe.get_feature_names_out(features_binary))
+    cols_binary = ohe.fit_transform(data[binary].astype(str))
+    cols_binary_df = pd.DataFrame(cols_binary, columns=ohe.get_feature_names_out(binary))
+
+    # # MultiLabel Encode
+    multi_label_dfs = []
+    for col in multi_label:
+        mlb = MultiLabelBinarizer()
+        # Split by comma and strip whitespace
+        split_data = data[col].astype(str).str.split(',').apply(lambda x: [i.strip() for i in x])
+        binarized = mlb.fit_transform(split_data)
+        # Prefix column names to avoid collisions
+        binarized_df = pd.DataFrame(binarized, columns=[f"{col}_{c}" for c in mlb.classes_])
+        multi_label_dfs.append(binarized_df)
+    
+    cols_multi_df = pd.concat(multi_label_dfs, axis=1)
+
+    print("========== Check Multi-Label Encoded features ==========")
+    print(cols_multi_df.info())
 
     # Label Encode
     le = LabelEncoder()
-    features_cols_label_df = features[features_label].copy().reset_index(drop=True)
-    for col in features_label:
-        features_cols_label_df[col] = le.fit_transform(features_cols_label_df[col].astype(str))
+    cols_label_df = data[label].copy().reset_index(drop=True)
+    for col in label:
+        cols_label_df[col] = le.fit_transform(cols_label_df[col].astype(str))
     
-    # Combine back into period_cols
-    features = pd.concat([features_cols_binary_df, features_cols_label_df], axis=1)
-    print("========== Check Encoded features ==========")
-    print(features)
+    # Combine all encoded features
+    encoded_data = pd.concat([cols_binary_df, cols_label_df, cols_multi_df], axis=1)
+    print("========== Check Label Encoded features ==========")
+    print(encoded_data)
 
-    return unsupervised_data, features
+    return data, encoded_data
 
-data, features = data_prep(data, segmented)
-features.to_csv('for_supervised.csv', index=False)
-data.to_csv('for_unsupervised.csv', index=False)
+data, encoded_data = data_prep(data, segmented)
+encoded_data.to_csv('encoded_data.csv', index=False)
+data.to_csv('cleaned_data.csv', index=False)
