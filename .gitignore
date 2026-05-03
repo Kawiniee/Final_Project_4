@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# =========================
+# ML MODEL (สำคัญ)
+# =========================
+*.pkl
+*.joblib
+
+# หรือถ้าจะ ignore เฉพาะ folder
+# app/*.pkl
+
+# =========================
+# Data
+# =========================
+data/
+*.csv
+*.xlsx
+
+# =========================
+# Env
+# =========================
+.env
+
+# =========================
+# Cache
+# =========================
+.cache/

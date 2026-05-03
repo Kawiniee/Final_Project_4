@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Prediction</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 350px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4facfe;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #007bff;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h2>Customer Prediction</h2>
+
+        <input type="number" id="age" placeholder="Age">
+
+        <select id="sex">
+            <option value="">-- Select Sex --</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </select>
+
+        <input type="text" id="profession" placeholder="Profession">
+        <input type="text" id="province" placeholder="Province">
+
+        <button onclick="predict()">Predict</button>
+
+        <!-- Feedback -->
+        <label>Result correct?</label>
+        <select id="feedback">
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select>
+
+        <!-- Result -->
+        <div class="result" id="result" style="display:none;"></div>
+    </div>
+
+    <script>
+        console.log("JS LOADED");
+
+        async function predict() {
+
+            const age = document.getElementById("age").value;
+            const sex = document.getElementById("sex").value;
+            const profession = document.getElementById("profession").value;
+            const province = document.getElementById("province").value;
+
+            if (!age || !sex || !profession || !province) {
+                alert("กรอกข้อมูลให้ครบ");
+                return;
+            }
+
+            const data = {
+                age: parseInt(age),
+                sex: sex,
+                profession: profession,
+                province: province
+            };
+
+            const resultDiv = document.getElementById("result");
+            resultDiv.style.display = "block";
+            resultDiv.innerHTML = "⏳ Loading...";
+
+            try {
+                const res = await fetch("http://127.0.0.1:8000/predict/all", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+                console.log(result);
+
+                const customer = result.customer_segment || "-";
+                const platform = result.recommended_platform || result.platform || "-";
+                const time = result.best_ad_time || result.ad_time || "-";
+
+                resultDiv.innerHTML = `
+                    <b>Customer:</b> ${customer} <br>
+                    <b>Platform:</b> ${platform} <br>
+                    <b>Ad Time:</b> ${time}
+                `;
+
+                // SEND FEEDBACK
+                const feedback = document.getElementById("feedback").value;
+
+                await fetch("http://127.0.0.1:8000/feedback", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        ...data,
+                        customer_segment: customer,
+                        platform: platform,
+                        ad_time: time,
+                        feedback: feedback
+                    })
+                });
+
+            } catch (err) {
+                console.error(err);
+                resultDiv.innerHTML = "❌ Error เกิดขึ้น";
+            }
+        }
+    </script>
+
+</body>
+
+</html>
