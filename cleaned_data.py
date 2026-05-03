@@ -7,10 +7,10 @@ segmented = pd.read_csv('unsupervised_results.csv')
 print("========== Check Raw Data ==========")
 print(data.info())
 
-print("========== Check Unsupervised ==========")
+# print("========== Check Unsupervised ==========")
 print(segmented.info())
 
-def data_prep(data, segmented):
+def data_prep(data):
     # Filter
     mask = (data['คุณดื่มกาแฟหรือไม่'] == 'ไม่ดื่ม') & (data['คุณดื่มชาหรือไม่'] == 'ไม่ดื่ม')
     data = data.drop(data[mask].index).reset_index() #drop where it's not ours customer
@@ -27,7 +27,7 @@ def data_prep(data, segmented):
         )
             
     rename_mapping = {
-        # --- กลุ่มกาแฟ (Coffee) ---
+        # --- กลุ่ม general and โซเชียลมีเดีย (Social) ---
         'อายุ': 'Age', 'อาชีพ': 'Profession', 'เพศ': 'Sex',
         'โปรดพิมพ์จังหวัดที่อยู่อาศัยของคุณ เช่น กทม , ขอนแก่น, ชลบุรี': 'Province',
         'คุณใช้โซเชียลมีเดียใดบ่อยที่สุด': 'S_Occasion',
@@ -36,6 +36,9 @@ def data_prep(data, segmented):
         'ในวันจันทร์-ศุกร์ (Weekday) ช่วงเวลาใดที่คุณเปิดรับสื่อแต่ละช่องทาง [ออนไลน์]': 'S_Time(weekday)',
         'ในวันหยุดเสาร์-อาทิตย์ (Weekend) ช่วงเวลาใดที่คุณเปิดรับสื่อแต่ละช่องทาง [ออนไลน์]': 'S_Time(weekend)',
         'ในวันหยุดยาวหรือเทศกาล คุณใช้โซเชียลมีเดีย อย่างไร': 'S_Usage(festival)',
+        'การรับชมโฆษณาผ่านช่องทางใดที่มีอิทธิพลต่อการตัดสินใจซื้อผลิตภัณฑ์ (เลือกได้หลายคำตอบ)': 'S_Influence',
+
+        # --- กลุ่มกาแฟ (Coffee) ---
         'คุณดื่มกาแฟประเภทใดบ่อยที่สุด': 'C_Frequency',
         'คุณชอบกาแฟประเภทใดมากที่สุด': 'C_Favorite',  
         'คุณดื่มกาแฟพร้อมดื่ม (Ready to drink) แบรนด์ใดบ่อยที่สุด': 'C_BestBrand',
@@ -122,12 +125,12 @@ def data_prep(data, segmented):
 
     multi_label = ['S_Time(weekday)', 'S_Time(weekend)', 'T_Channel', 'C_Occasion', 'T_Occasion', 'T_Trial']
 
-    # # OneHot (Binary) Encode
+    # OneHot (Binary) Encode
     ohe = OneHotEncoder(sparse_output=False)
     cols_binary = ohe.fit_transform(data[binary].astype(str))
     cols_binary_df = pd.DataFrame(cols_binary, columns=ohe.get_feature_names_out(binary))
 
-    # # MultiLabel Encode
+    # MultiLabel Encode
     multi_label_dfs = []
     for col in multi_label:
         mlb = MultiLabelBinarizer()
@@ -156,6 +159,6 @@ def data_prep(data, segmented):
 
     return data, encoded_data
 
-data, encoded_data = data_prep(data, segmented)
+data, encoded_data = data_prep(data)
 encoded_data.to_csv('encoded_data.csv', index=False)
 data.to_csv('cleaned_data.csv', index=False)
