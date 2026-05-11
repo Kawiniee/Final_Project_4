@@ -6,6 +6,23 @@ import dash_bootstrap_components as dbc
 dash.register_page(__name__, path="/business-insight", name="Business Insight")
 
 
+def insight_content(points, takeaway):
+    return html.Div([
+        html.Div("Key Insights", className="insight-heading"),
+        html.Div([
+            html.Div([
+                html.Span(label, className="insight-label"),
+                html.Span(text, className="insight-text"),
+            ], className="insight-point")
+            for label, text in points
+        ]),
+        html.Div([
+            html.Div("Strategic Takeaway", className="takeaway-title"),
+            html.Div(takeaway, className="takeaway-text"),
+        ], className="takeaway-box"),
+    ])
+
+
 def insight_block(num, title, img_path, insight):
     return dbc.Card(dbc.CardBody([
         html.H5(f"กราฟที่ {num}: {title}", className="chart-title"),
@@ -15,7 +32,7 @@ def insight_block(num, title, img_path, insight):
                 lg=7,
             ),
             dbc.Col(
-                html.Div([html.Strong("📌 Insight"), html.Div(insight)], className="insight-side"),
+                html.Div(insight, className="insight-side insight-panel"),
                 lg=5,
             ),
         ], className="chart-layout g-3"),
@@ -30,54 +47,56 @@ layout = html.Div([
         1,
         "สัดส่วนช่องทางที่มีอิทธิพลต่อการตัดสินใจซื้อ",
         "/assets/charts/bi_donut_influence.png",
-        "โซเชียลมีเดียมีอิทธิพลสูงสุดต่อการตัดสินใจซื้อ รองลงมาคือแพลตฟอร์มวิดีโอ สอดคล้องกับพฤติกรรม digital-first ของกลุ่มเป้าหมายอายุ 23-29 ปี — ควรเน้น budget บน Digital Channel เป็นหลัก",
+        insight_content(
+            [
+                ("โซเชียลมีเดีย:", "ครองอันดับ 1 (40.2%) เป็นช่องทางหลักที่ influence ลูกค้าทุกกลุ่ม"),
+                ("แพลตฟอร์มวิดีโอ:", "อันดับ 2 (15.8%) สะท้อนพลังของ Visual Content"),
+                ("โทรทัศน์:", "ยังคงมีบทบาท (12.1%) แต่ถูก Digital เข้ามาแทนที่มากขึ้น"),
+                ("สื่อ ณ จุดขาย:", "แม้สัดส่วนน้อย (11.1%) แต่สำคัญมากในขั้นตอนตัดสินใจสุดท้าย"),
+            ],
+            "เน้นลงทุนใน Social + Video Content เพื่อประสิทธิภาพสูงสุดในการกระตุ้นยอดขาย",
+        ),
     ),
 
     insight_block(
         2,
         "จำนวนผู้ได้รับอิทธิพลจากโฆษณาแต่ละช่องทาง",
         "/assets/charts/bi_bar_influence.png",
-        "ช่องทาง Online ครองสัดส่วนมากกว่า 70% ของการรับรู้โฆษณา สื่อ Offline อย่างบิลบอร์ดและรถไฟฟ้ามีผลน้อยกว่ามาก — Digital Marketing คือ channel หลักที่ควร allocate budget",
+        insight_content(
+            [
+                ("โซเชียลมีเดียมีอิทธิพลสูงสุด:", "มีผู้ได้รับอิทธิพลกว่า 130 คน นำหน้าสื่ออื่นๆ อย่างชัดเจน"),
+                ("วิดีโอ & โทรทัศน์:", "เป็นช่องทางรองที่สำคัญ (39-51 คน) สะท้อนความสำคัญของสื่อภาพเคลื่อนไหว"),
+                ("สื่อสิ่งพิมพ์ถดถอย:", "หนังสือพิมพ์และนิตยสารมีอิทธิพลน้อยที่สุด (11-17 คน)"),
+            ],
+            "เน้นทำ Creative Content บน Social Media และ Video Platform เป็นหลักเพื่อ Impact สูงสุด",
+        ),
     ),
 
     insight_block(
         3,
         "แพลตฟอร์มที่ใช้งานประจำ แบ่งตามกลุ่มลูกค้า",
         "/assets/charts/bi_platform_by_cluster.png",
-        "กลุ่มชอบทั้งกาแฟและชา นิยม LINE มากที่สุด ส่วนกลุ่มชอบกาแฟและชอบชา กระจายตัวบน Facebook และ Instagram — ใช้ข้อมูลนี้ทำ platform targeting แยกตาม segment ได้โดยตรง",
+        insight_content(
+            [
+                ("กลุ่ม Both Lovers (52%):", "กระจายตัวทุกแพลตฟอร์ม เป็นกลุ่ม Mass ที่เข้าถึงง่ายที่สุด"),
+                ("กลุ่ม Coffee Lovers:", "มีแนวโน้มใช้ Facebook และ Instagram เพื่อติดตามคอนเทนต์เฉพาะกลุ่ม"),
+                ("กลุ่ม Tea Lovers:", "เน้นแพลตฟอร์มด้าน Health & Lifestyle Content เป็นหลัก"),
+            ],
+            "ทำ Targeted Ad แยกตาม Cluster และแพลตฟอร์มที่กลุ่มนั้น Active ไม่ควรใช้แบบ One-size-fits-all",
+        ),
     ),
 
     insight_block(
         4,
         "พฤติกรรมการใช้สื่อช่วงเทศกาลสงกรานต์",
         "/assets/charts/bi_festival_behavior.png",
-        "ลูกค้าส่วนใหญ่ทุกกลุ่มใช้โซเชียลมีเดียมากขึ้นช่วงสงกรานต์ — นี่คือโอกาสสำคัญในการ launch RTD campaign ช่วงเทศกาล เพราะ reach และ engagement สูงกว่าปกติ",
+        insight_content(
+            [
+                ("พฤติกรรมรวม:", "ลูกค้าส่วนใหญ่ทุก Cluster ใช้สื่อ \"เท่าเดิมหรือมากขึ้น\" ไม่มี Drop-off"),
+                ("กลุ่ม Both Lovers:", "ใช้สื่อเพิ่มขึ้นมากที่สุด เป็นโอกาสทองในการทำ Campaign"),
+                ("กลุ่ม Tea Lovers:", "แนวโน้มใช้ \"เท่าเดิม\" สูง ต้องใช้ Creative ที่โดดเด่นเพื่อดึงดูด"),
+            ],
+            "ไม่ควรหยุด Ads ช่วงสงกรานต์ — เพิ่ม Budget และเน้น Seasonal Campaign เป็นพิเศษ",
+        ),
     ),
-
-    html.H4("💡 Strategic Recommendations", className="section-title mt-2"),
-    dbc.Row([
-        dbc.Col(dbc.Card(dbc.CardBody([
-            html.Div("☕", style={"fontSize": "32px", "textAlign": "center"}),
-            html.H5("ชอบกาแฟ", className="text-center fw-bold"),
-            html.P("📱 Facebook / Instagram", className="text-center"),
-            html.P("⏰ 18.00 – 21.59 น.", className="text-center"),
-            html.P("🎯 'กาแฟสดในขวด รสชาติเหมือนร้าน พกพาได้ทุกที่'", className="text-center", style={"fontSize": "13px"}),
-        ]), style={"borderTop": "4px solid #6F4E37", "backgroundColor": "#FFF8F0", "borderRadius": "12px"}), md=4),
-
-        dbc.Col(dbc.Card(dbc.CardBody([
-            html.Div("🍵☕", style={"fontSize": "32px", "textAlign": "center"}),
-            html.H5("ชอบทั้งกาแฟและชา", className="text-center fw-bold"),
-            html.P("📱 LINE", className="text-center"),
-            html.P("⏰ 18.00 – 21.59 น.", className="text-center"),
-            html.P("🎯 'ครบทุกอารมณ์ ทั้งกาแฟและชา เลือกได้ตามวัน'", className="text-center", style={"fontSize": "13px"}),
-        ]), style={"borderTop": "4px solid #21cdb6", "backgroundColor": "#FFF8F0", "borderRadius": "12px"}), md=4),
-
-        dbc.Col(dbc.Card(dbc.CardBody([
-            html.Div("🍵", style={"fontSize": "32px", "textAlign": "center"}),
-            html.H5("ชอบชา", className="text-center fw-bold"),
-            html.P("📱 Facebook", className="text-center"),
-            html.P("⏰ 18.00 – 21.59 น.", className="text-center"),
-            html.P("🎯 'ชาพรีเมียม ไม่มีน้ำตาล — Healthy Choice ของคนรักชา'", className="text-center", style={"fontSize": "13px"}),
-        ]), style={"borderTop": "4px solid #8f8f8f", "backgroundColor": "#FFF8F0", "borderRadius": "12px"}), md=4),
-    ], className="g-3"),
 ], className="page-wrapper")

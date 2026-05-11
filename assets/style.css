@@ -15,6 +15,33 @@ body {
 .predict-result { border-radius: 12px; padding: 24px; background: linear-gradient(135deg, #6F4E37, #C8860A); color: white; text-align: center; }
 .navbar-nav .nav-link { color: rgba(255,255,255,0.85) !important; }
 .navbar-nav .nav-link.active { color: #fff !important; font-weight: 700; border-bottom: 2px solid #D2B48C; }
+.form-label-brown { font-weight: 600; color: #6F4E37; margin-bottom: 4px; }
+.predict-button { background-color: #6F4E37 !important; border: none !important; width: 100%; margin-top: 8px; font-weight: 600; }
+.upload-box {
+    width: 100%;
+    min-height: 150px;
+    border: 2px dashed rgba(111,78,55,0.35);
+    border-radius: 12px;
+    background: #FFF8F0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #6F4E37;
+    font-weight: 600;
+    padding: 24px;
+}
+.upload-box a { color: #C8860A; text-decoration: none; }
+.batch-feature-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.batch-feature-pill {
+    background: #FFF8F0;
+    border: 1px solid rgba(111,78,55,0.12);
+    border-radius: 8px;
+    color: #5D3A2B;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 12px;
+}
 
 .home-hero {
     padding: 30px;
@@ -232,6 +259,58 @@ body {
     display: block;
     color: #6F4E37;
     margin-bottom: 8px;
+}
+
+.insight-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.insight-heading {
+    color: #6F4E37;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.insight-point {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(111,78,55,0.12);
+}
+
+.insight-point:last-child {
+    border-bottom: 0;
+}
+
+.insight-label {
+    color: #5D3A2B;
+    font-weight: 700;
+    margin-right: 4px;
+}
+
+.insight-text {
+    color: #6D5A52;
+}
+
+.takeaway-box {
+    background: #FFFFFF;
+    border: 1px solid rgba(111,78,55,0.12);
+    border-left: 4px solid #C8860A;
+    border-radius: 0 8px 8px 0;
+    margin-top: 16px;
+    padding: 12px 14px;
+}
+
+.takeaway-title {
+    color: #6F4E37;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.takeaway-text {
+    color: #5D3A2B;
+    line-height: 1.7;
 }
 
 @media (max-width: 991px) {
