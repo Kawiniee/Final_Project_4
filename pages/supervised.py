@@ -8,6 +8,8 @@ import pandas as pd
 import numpy as np
 import joblib
 
+from scripts.firebase_config import build_event_payload, log_to_firebase
+
 
 dash.register_page(__name__, path="/supervised", name="Supervised Learning")
 
@@ -182,6 +184,18 @@ def render_single_result(segment, proba):
     ])
 
 
+def log_single_prediction(input_data, segment, proba):
+    payload = build_event_payload(
+        mode="single",
+        input_data=input_data,
+        prediction_data={
+            "predicted_segment": segment,
+            "probabilities": {label: round(float(p) * 100, 1) for label, p in zip(MODEL_LABELS, proba)},
+        },
+    )
+    log_to_firebase("predictions/single", payload)
+
+
 def render_batch_result(result_df, filename, missing_columns):
     segment_counts = result_df["Predicted_Segment"].value_counts()
     preview_cols = ["Predicted_Segment", "Age", "S_Occasion", "C_Favorite", "T_Favorite"]
@@ -235,6 +249,22 @@ def render_batch_result(result_df, filename, missing_columns):
             html.Div(filename, className="text-muted mt-2", style={"fontSize": "13px"}),
         ]), className="chart-card"),
     ])
+
+
+def log_batch_prediction(result_df, filename, missing_columns):
+    segment_counts = result_df["Predicted_Segment"].value_counts().to_dict()
+    payload = build_event_payload(
+        mode="batch",
+        input_data={
+            "filename": filename,
+            "missing_columns": missing_columns,
+            "row_count": int(len(result_df)),
+        },
+        prediction_data={
+            "segment_counts": segment_counts,
+        },
+    )
+    log_to_firebase("predictions/batch", payload)
 
 
 model_info = dbc.Card(dbc.CardBody([
@@ -355,6 +385,7 @@ def predict_single(n, age, freq, screen, occasion, cfav, tfav, tch):
         x_in = build_feature_frame(input_df)
         proba = model.predict_proba(x_in)[0]
         segment = le.inverse_transform([int(np.argmax(proba))])[0].replace("Cluster_ID_", "")
+        log_single_prediction(input_df.iloc[0].to_dict(), segment, proba)
         return render_single_result(segment, proba)
 
     except Exception as e:
@@ -378,6 +409,7 @@ def predict_batch(n_clicks, contents, filename):
         normalized_df, missing_columns = normalize_uploaded_columns(upload_df)
         result_df = predict_segments(normalized_df)
         output = render_batch_result(result_df, filename or "uploaded.csv", missing_columns)
+        log_batch_prediction(result_df, filename or "uploaded.csv", missing_columns)
         return output, result_df.to_json(orient="split", force_ascii=False)
 
     except Exception as e:

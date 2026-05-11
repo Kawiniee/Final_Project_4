@@ -110,6 +110,34 @@ Final_Project_4/
 - โอกาสในการดื่มกาแฟและชาพร้อมดื่ม
 - ช่องทางซื้อชาพร้อมดื่ม
 
+## Firebase
+
+โปรเจกต์นี้เชื่อม Firebase Realtime Database แบบ `write-only` เพื่อบันทึกผลการทำนายจากหน้า Supervised โดยไม่ทำให้หน้าเว็บล้มถ้าฐานข้อมูลมีปัญหา
+
+### ไฟล์ที่ต้องมี
+
+- `final-project-c89ae-firebase-adminsdk-fbsvc-c1d2cbe7aa.json` หรือไฟล์ service account ของคุณ
+- `.env` ที่ระบุค่าต่อไปนี้:
+
+```env
+FIREBASE_KEY_PATH=final-project-c89ae-firebase-adminsdk-fbsvc-c1d2cbe7aa.json
+FIREBASE_DB_URL=https://final-project-c89ae-default-rtdb.asia-southeast1.firebasedatabase.app/
+```
+
+### ข้อมูลที่ระบบบันทึก
+
+- โหมดการทำนาย (`single` หรือ `batch`)
+- เวลาที่ทำนาย
+- ค่าที่ใช้ทำนาย
+- ผล segment ที่ทำนายได้
+- probability ของแต่ละกลุ่ม
+- สำหรับ batch: ชื่อไฟล์ จำนวนแถว และสรุปจำนวนแต่ละ segment
+
+### หมายเหตุ
+
+- ถ้า key หรือ URL ไม่พร้อม ระบบยังใช้งาน prediction ได้ตามปกติ
+- อย่า commit ไฟล์ service account ขึ้น repo
+
 ## การติดตั้ง
 
 ติดตั้ง dependencies ที่จำเป็น:
