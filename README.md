@@ -116,7 +116,6 @@ Final_Project_4/
 
 ### ไฟล์ที่ต้องมี
 
-- `project-4-8ee03-firebase-adminsdk-fbsvc-d6eafdc0a1.json` หรือไฟล์ service account ของคุณ
 - `.env` ที่ระบุค่าต่อไปนี้:
 
 ```env
