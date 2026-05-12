@@ -116,12 +116,12 @@ Final_Project_4/
 
 ### ไฟล์ที่ต้องมี
 
-- `final-project-c89ae-firebase-adminsdk-fbsvc-c1d2cbe7aa.json` หรือไฟล์ service account ของคุณ
+- `project-4-8ee03-firebase-adminsdk-fbsvc-d6eafdc0a1.json` หรือไฟล์ service account ของคุณ
 - `.env` ที่ระบุค่าต่อไปนี้:
 
 ```env
-FIREBASE_KEY_PATH=final-project-c89ae-firebase-adminsdk-fbsvc-c1d2cbe7aa.json
-FIREBASE_DB_URL=https://final-project-c89ae-default-rtdb.asia-southeast1.firebasedatabase.app/
+FIREBASE_KEY_PATH=Your_Service_Account_Key.json
+FIREBASE_DB_URL=https://your-project-default-rtdb.asia-southeast1.firebasedatabase.app/
 ```
 
 ### ข้อมูลที่ระบบบันทึก
@@ -136,7 +136,6 @@ FIREBASE_DB_URL=https://final-project-c89ae-default-rtdb.asia-southeast1.firebas
 ### หมายเหตุ
 
 - ถ้า key หรือ URL ไม่พร้อม ระบบยังใช้งาน prediction ได้ตามปกติ
-- อย่า commit ไฟล์ service account ขึ้น repo
 
 ## การติดตั้ง
 
