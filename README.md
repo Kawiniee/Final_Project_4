@@ -144,7 +144,15 @@ FIREBASE_DB_URL=https://your-project-default-rtdb.asia-southeast1.firebasedataba
 pip install dash dash-bootstrap-components pandas numpy joblib scikit-learn xgboost
 ```
 
-## การรันโปรเจกต์
+## การ Deploy บน Render
+
+โปรเจกต์นี้ deploy บน Render และสามารถเข้าใช้งานได้ที่:
+
+```text
+https://project-444444.onrender.com
+```
+
+### สำหรับ Local Development
 
 รันคำสั่ง:
 
@@ -157,6 +165,19 @@ python app.py
 ```text
 http://localhost:8050
 ```
+
+### สำหรับ Deploy บน Render
+
+1. Push โค้ดขึ้น GitHub repository
+2. เข้าเว็บ [Render Dashboard](https://dashboard.render.com/)
+3. สร้าง Web Service ใหม่ เลือก GitHub repository
+4. ตั้งค่า:
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn app:server --workers 4 --threaded`
+5. เพิ่ม Environment Variables:
+   - `FIREBASE_KEY_PATH` (ถ้ามี Firebase)
+   - `FIREBASE_DB_URL` (ถ้ามี Firebase)
+6. Deploy และรอจนเสร็จ
 
 ## หมายเหตุ
 
