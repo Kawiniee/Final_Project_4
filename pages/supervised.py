@@ -20,11 +20,6 @@ df_raw = pd.read_csv("data/cleaned_data.csv")
 
 SEGMENT_ICON = {"ชอบกาแฟ": "☕", "ชอบชา": "🍵", "ชอบทั้งกาแฟและชา": "🍵☕"}
 SEGMENT_COLOR = {"ชอบกาแฟ": "#6F4E37", "ชอบชา": "#8f8f8f", "ชอบทั้งกาแฟและชา": "#21cdb6"}
-CAMPAIGN_REC = {
-    "ชอบกาแฟ": "📱 Facebook/Instagram | ⏰ 18.00-21.59 น. | 🎯 'กาแฟสดในขวด รสชาติเหมือนร้าน พกพาได้ทุกที่'",
-    "ชอบชา": "📱 Facebook | ⏰ 18.00-21.59 น. | 🎯 'ชาพรีเมียม ไม่มีน้ำตาล — Healthy Choice ของคนรักชา'",
-    "ชอบทั้งกาแฟและชา": "📱 LINE | ⏰ 18.00-21.59 น. | 🎯 'ครบทุกอารมณ์ ทั้งกาแฟและชา เลือกได้ตามวัน'",
-}
 
 COLUMN_ALIASES = {
     "Age": ["Age", "อายุ"],
@@ -176,11 +171,6 @@ def render_single_result(segment, proba):
                 ),
             ]) for label, p in zip(MODEL_LABELS, proba)],
         ]), className="chart-card mb-3"),
-
-        dbc.Card(dbc.CardBody([
-            html.H6("💡 Campaign Recommendation", className="fw-bold mb-2", style={"color": "#6F4E37"}),
-            html.P(rec, style={"fontSize": "14px", "margin": "0"}),
-        ]), className="chart-card"),
     ])
 
 
